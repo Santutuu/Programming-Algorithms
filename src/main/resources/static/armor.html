@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Branch & Bound - Loadout</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacOSFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding-top: 80px;
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-bottom: 20px;
+            background: linear-gradient(135deg, #C0603D, #7A2E2E);
+            color: #2c1e16;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) 320px;
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 5rem auto 2rem auto;
+            padding: 2.5rem;
+            background: #F7F3EE;
+            border-radius: 14px;
+            border: 2px solid #4A2C2A;
+            box-shadow: 0 16px 30px rgba(0,0,0,0.2);
+        }
+
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar {
+            background: #ffffff;
+            border: 2px solid #4A2C2A;
+            border-radius: 14px;
+            padding: 1.5rem;
+            box-shadow: 0 14px 24px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 100px;
+            align-self: start;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            color: #4A2C2A;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar h3 {
+            text-align: left;
+            margin-top: 0;
+        }
+
+        .sidebar p, .sidebar ul {
+            margin-bottom: 1rem;
+            color: #3d3d3d;
+        }
+
+        .sidebar-note {
+            background: #e8f6f2;
+            border: 1px solid #c8e8dd;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-note strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-metric {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .sidebar-metric div {
+            background: #f7f9f7;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .sidebar-metric div span {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #4A2C2A;
+        }
+
+        /* --- Barra de Navegación --- */
+        .navbar {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            background: linear-gradient(135deg, #4A2C2A, #7A2E2E);
+            width: 100%;
+            padding: 12px 20px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            min-height: 70px;
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .navbar h1 a {
+            color: white;
+            text-decoration: none;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .navbar .nav-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+
+        .navbar a:hover {
+            background-color: rgba(255,255,255,0.15);
+        }
+
+        /* --- Estilos para la tabla de items (like inventory.html) --- */
+        .item-table-container {
+            margin-top: 2em;
+        }
+        .item-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+        }
+        .item-table th, .item-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .item-table th {
+            background-color: #f2f2f2;
+        }
+
+        /* --- Formulario para agregar armaduras (like inventory.html) --- */
+        .add-armor-container {
+            margin-top: 2em;
+            padding-top: 1.5em;
+            border-top: 2px solid #eee;
+        }
+        .add-armor-container div {
+            margin-bottom: 15px;
+        }
+        .add-armor-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .add-armor-container input, .add-armor-container select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .add-armor-container button {
+             padding: 10px 20px; font-size: 16px; font-weight: bold; color: #fff;
+             background: #007bff; border: none; border-radius: 4px; cursor: pointer;
+        }
+        .add-armor-container button:hover { background: #0056b3; }
+
+        /* --- Optimization Controls --- */
+        .control-group { margin: 20px 0; text-align: center; padding-top: 1.5em; border-top: 2px solid #eee;}
+        .control-group p { margin-top: 0;}
+        .control-group label { font-size: 1.2em; font-weight: bold; display: block; margin-bottom: 10px; }
+        #capacity { width: 100px; font-size: 1.2em; text-align: center; padding: 5px; }
+        #calculateBtn { padding: 10px 20px; font-size: 16px; font-weight: bold; color: #fff;
+                 background: #28a745; border: none; border-radius: 4px; cursor: pointer; }
+        #calculateBtn:hover { background: #218838; }
+
+        /* --- Results --- */
+        #results { margin-top: 30px; text-align: left; }
+        #results h2 { text-align: center; }
+        #summary { text-align: center; margin-bottom: 20px; font-size: 1.1em; }
+        #poise, #peso { font-size: 1.4em; font-weight: bold; }
+        #poise { color: #28a745; }
+        #peso { color: #dc3545; }
+        #item-list { list-style: none; padding: 0; }
+        #item-list li { background: #f9f9f9; border: 1px solid #ddd; padding: 10px;
+                        margin-bottom: 5px; border-radius: 4px;
+                        display: flex; justify-content: space-between; align-items: center; }
+        #item-list li strong { color: #0056b3; }
+
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <h1><a href="/">🏠 Home</a></h1>
+    <span class="nav-title">Armor Optimizer (B&B)</span>
+</nav>
+<div class="container">
+    <div class="main-panel">
+        <h1>Loadout Optimizer</h1>
+
+        <!-- 1. Armor table -->
+        <div class="item-table-container">
+            <h3>Available Armor (Chest)</h3>
+            <table class="item-table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Slot</th>
+                    <th>Weight</th>
+                    <th>Poise</th>
+                </tr>
+                </thead>
+                <tbody id="armor-table-body">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 4. Results -->
+        <div id="results" style="display:none;">
+            <h2>Optimal Loadout Found</h2>
+            <div id="summary">
+                <div>Total Poise: <span id="poise"></span></div>
+                <div>Total Weight: <span id="peso"></span></div>
+            </div>
+            <ul id="item-list"></ul>
+        </div>
+    </div>
+
+    <aside class="sidebar">
+        <h3>Armor Control Panel</h3>
+        <div class="sidebar-note">
+            <strong>How it works</strong>
+            <p>Add armor pieces on the right, then choose a maximum carry weight. Click <strong>Optimize Loadout</strong> and the algorithm will search for the best combination of armor that maximizes poise without exceeding the weight limit.</p>
+        </div>
+
+        <!-- 2. Form to add armor -->
+        <div class="add-armor-container">
+            <h3>Add New Armor</h3>
+            <form id="add-armor-form">
+                <div>
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div>
+                    <label for="slot">Slot:</label>
+                    <select id="slot" required>
+                        <option value="HEAD">Head</option>
+                        <option value="CHEST">Chest</option>
+                        <option value="ARMS">Arms</option>
+                        <option value="LEGS">Legs</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="new-peso">Weight:</label>
+                    <input type="number" id="new-peso" required>
+                </div>
+                <div>
+                    <label for="new-poise">Poise:</label>
+                    <input type="number" id="new-poise" required>
+                </div>
+                <button type="submit">Add Armor</button>
+            </form>
+        </div>
+
+        <!-- 3. Optimization controls -->
+        <div class="control-group">
+            <p>Find the maximum <strong>Poise</strong> without going over the weight limit.</p>
+            <label for="capacity">Maximum Carry Weight:</label>
+            <input type="number" id="capacity" value="50">
+            <button id="calculateBtn">Optimize Loadout</button>
+        </div>
+
+        <div class="sidebar-metric">
+            <div>
+                <span>Armor items</span>
+                <span id="armor-count">0</span>
+            </div>
+            <div>
+                <span>Best poise</span>
+                <span id="best-poise">—</span>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<script>
+    const capacityInput = document.getElementById('capacity');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resultsDiv = document.getElementById('results');
+    const poiseEl = document.getElementById('poise');
+    const pesoEl = document.getElementById('peso');
+    const itemListEl = document.getElementById('item-list');
+    const addArmorForm = document.getElementById('add-armor-form');
+
+    calculateBtn.addEventListener('click', optimizeLoadout);
+    addArmorForm.addEventListener('submit', addArmor);
+
+    async function addArmor(event) {
+        event.preventDefault();
+        const name = document.getElementById('name').value;
+        const slot = document.getElementById('slot').value;
+        const peso = document.getElementById('new-peso').value;
+        const poise = document.getElementById('new-poise').value;
+
+        const newArmor = {
+            name,
+            slot,
+            peso: parseInt(peso),
+            poise: parseInt(poise)
+        };
+
+        try {
+            const response = await fetch('/armor/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newArmor)
+            });
+
+            if (response.ok) {
+                loadArmor(); // Reload the table
+                addArmorForm.reset();
+            } else {
+                alert('Error adding armor');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error adding armor');
+        }
+    }
+
+    async function optimizeLoadout() {
+        const capacity = capacityInput.value;
+        if (capacity <= 0) {
+            alert("Capacity must be greater than 0");
+            return;
+        }
+
+        calculateBtn.textContent = 'Calculating...';
+        calculateBtn.disabled = true;
+
+        try {
+            const response = await fetch(`/armor/optimize?capacity=${capacity}`);
+            const data = await response.json();
+
+            poiseEl.textContent = data.totalPoise;
+            pesoEl.textContent = `${data.totalPeso} / ${capacity} kg`;
+            itemListEl.innerHTML = '';
+
+            data.items.forEach(item => {
+                if (item.name !== "Nada" && item.name !== "None") {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span><strong>[${item.slot}]</strong> ${item.name}</span>
+                        <span>(Poise: ${item.poise} / Weight: ${item.peso})</span>
+                    `;
+                    itemListEl.appendChild(li);
+                }
+            });
+
+            resultsDiv.style.display = 'block';
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error calculating optimization.');
+        } finally {
+            calculateBtn.textContent = 'Optimize Loadout';
+            calculateBtn.disabled = false;
+        }
+    }
+
+    async function loadArmor() {
+        const tableBody = document.getElementById('armor-table-body');
+        try {
+            const response = await fetch('/armor/all');
+            const items = await response.json();
+
+            tableBody.innerHTML = '';
+
+            if (items.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4">No armor items loaded.</td></tr>';
+            } else {
+                items.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.name}</td>
+                        <td>${item.slot}</td>
+                        <td>${item.peso}</td>
+                        <td>${item.poise}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading armor:', error);
+            tableBody.innerHTML = '<tr><td colspan="4">Error loading armor.</td></tr>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadArmor);
+</script>
+
+</body>
+</html>

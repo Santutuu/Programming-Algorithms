@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Dijkstra - Elden Ring</title>
+  <style>
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        background: linear-gradient(135deg, #C0603D, #7A2E2E);
+        color: #2c1e16;
+    }
+
+    h1, h2 { text-align: center; }
+
+    /* --- Barra de Navegación --- */
+    .navbar {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        background: linear-gradient(135deg, #4A2C2A, #7A2E2E);
+        width: 100%;
+        padding: 12px 20px;
+        box-sizing: border-box;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 1.0rem;
+        font-weight: 600;
+        color: white;
+        position: relative;
+        min-height: 70px;
+        margin-bottom: 16px;
+    }
+
+    .navbar .nav-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 2rem; /* tamaño h1 */
+        font-weight: 700;
+        color: white;
+    }
+
+    .navbar a {
+        color: white;
+        text-decoration: none;
+        font-size: 2rem; /* tamaño h1 */
+        font-weight: 700;
+        padding: 8px 12px;
+        border-radius: 4px;
+    }
+
+    .navbar a:hover {
+        background-color: rgba(255,255,255,0.15);
+    }
+
+    /* Contenedor principal para el layout Izq/Der */
+    .demo-wrapper {
+        display: flex;
+        flex-wrap: wrap; /* Para que en pantallas chicas se ponga uno abajo del otro */
+        justify-content: center;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* --- Columna Izquierda (Mapa) --- */
+    .map-wrapper {
+            flex: 3;
+            min-width: 600px;
+        }
+
+    .map-container {
+            position: relative; /* ¡CLAVE! Es el ancla para todo lo demás */
+            max-width: 100%;
+            margin: 1em auto;
+            border: 2px solid #4A2C2A;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+        }
+
+    .map-image {
+            display: block;
+            width: 100%;
+            position: relative; /* Importante que NO sea absolute */
+            z-index: 1; /* La capa más baja */
+        }
+
+        /* ¡NUEVO! Ocultamos las overlays por defecto */
+    .map-image.overlay {
+            position: absolute; /* Se apilan encima de la base */
+            top: 0;
+            left: 0;
+            display: none; /* Ocultas por defecto */
+            z-index: 2; /* Encima de la base */
+        }
+
+
+    /* --- Estilo para las etiquetas de costo (aristas) --- */
+    .cost-label {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.85);
+            color: #c00;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 1px 5px;
+            border-radius: 4px;
+            border: 1px solid #c00;
+            pointer-events: none;
+            z-index: 5; /* Encima de las overlays */
+            display: none; /* Ocultos por defecto */
+        }
+
+    /* --- Coordenadas de cada etiqueta de costo (ACTUALIZADAS) --- */
+
+    /* Necrolimbo (78, 37) */
+    #cost-necro-liurnia      { top: 66.5%; left: 26%; }
+    #cost-necro-peninsula    { top: 85%;   left: 41%; }
+    #cost-necro-caelid       { top: 78%;   left: 52.5%; }
+    #cost-necro-dragonbarrow { top: 71.5%; left: 55.5%; }
+
+    /* Liurnia (55, 15) */
+    #cost-liurnia-altus { top: 43.5%; left: 25%; }
+    #cost-liurnia-gelmir{ top: 45.5%; left: 16.5%; }
+
+    /* Caelid (78, 68) */
+    #cost-caelid-altus       { top: 55%;   left: 51.5%; }
+    #cost-caelid-dragonbarrow{ top: 71.5%; left: 71%; }
+
+    /* Altus (32, 35) */
+    #cost-altus-gelmir   { top: 34%;   left: 26.5%; }
+    #cost-altus-prohibido{ top: 32.5%; left: 45.5%; }
+
+    /* Mountain (28, 75) */
+    #cost-mountain-prohibido    { top: 30.5%; left: 65.5%; }
+    #cost-mountain-dragonbarrow { top: 46.5%; left: 74.5%; }
+    #cost-mountain-nieve        { top: 24%;   left: 65%; }
+
+    /* Peninsula (92, 45) */
+    /* Lo moví 1% para que no se pise con "necro-peninsula" */
+    #cost-peninsula-necro  { top: 86%;   left: 44%; }
+    #cost-peninsula-caelid { top: 85%;   left: 56.5%; }
+
+    /* Nieve (20, 55) */
+    #cost-nieve-altus { top: 26%; left: 45%; }
+
+    /* Estilo base de un marcador (Sitio de Gracia) */
+    .marker {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: #ffdf00;
+            border: 2px solid #000;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px #ffdf00;
+            transform: translate(-50%, -50%);
+            transition: all 0.2s ease;
+            z-index: 10; /* ¡Encima de todo! (incluso de los costos) */
+        }
+
+
+    /* --- Estilo para la etiqueta permanente del nodo --- */
+    .marker-label {
+            position: absolute;
+            top: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 11; /* Encima del punto del marcador */
+        }
+
+    .marker:hover, .marker.path-node {
+            transform: translate(-50%, -50%) scale(1.6);
+        }
+
+    .marker.start { background: #00ff7f; box-shadow: 0 0 15px #00ff7f; }
+        .marker.end { background: #ff4500; box-shadow: 0 0 15px #ff4500; }
+
+        .marker.path-node {
+            background: #00c3ff;
+            box-shadow: 0 0 15px #00c3ff, 0 0 25px #00c3ff;
+            border-color: #fff;
+        }
+
+
+
+
+
+        /* Tus 5 originales (con tus correcciones) */
+        #necrolimbo { top: 78%; left: 37%; }
+        #liurnia    { top: 55%; left: 15%; }
+        #caelid     { top: 78%; left: 68%; }
+        #altus      { top: 32%; left: 35%; }
+        #mountain      { top: 28%; left: 75%; }
+
+        /* 5 Nuevos Nodos (ubicados en puntos azules clave) */
+        #peninsula    { top: 92%; left: 45%; } /* Punto azul bien al sur */
+        #gelmir       { top: 36%; left: 18%; } /* Punto azul al oeste de Altus */
+        #dragonbarrow { top: 65%; left: 74%; } /* Punto azul al norte de Caelid */
+        #prohibido    { top: 33%; left: 56%; } /* Punto azul entre Altus y Cumbres */
+        #nieve        { top: 20%; left: 55%; } /* Punto azul en zona de nieve oeste */
+
+
+
+
+    /* --- Columna Derecha (Resultados) --- */
+    #results-panel {
+        flex: 1;
+        min-width: 300px;
+        margin-left: 2em;
+        background: #F7F3EE;
+        padding: 1.5em;
+        border-radius: 12px;
+        border: 2px solid #4A2C2A;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        height: fit-content;
+    }
+
+
+
+    @keyframes glowPulse {
+        0% { box-shadow: 0 0 8px rgba(255,255,255,0.4); }
+        50% { box-shadow: 0 0 20px rgba(255,255,255,0.8); transform: translateY(-1px); }
+        100% { box-shadow: 0 0 8px rgba(255,255,255,0.4); }
+    }
+
+    .controls {
+        font-size: 1.05em;
+        margin-bottom: 1em;
+        text-align: center;
+        background: #f7f3ee;
+        border: 2px solid #a0775c;
+        border-radius: 10px;
+        padding: 0.8em;
+        color: #3b2418;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+        animation: none;
+    }
+
+    .controls b {
+        font-size: 1.2em;
+        text-transform: uppercase;
+        color: #1f3d0c;
+        padding: 2px 8px;
+        border-radius: 6px;
+        box-shadow: 0 0 10px rgba(0, 255, 127, 0.6);
+    }
+
+    #camino { font-size: 1.1em; font-weight: bold; }
+    #costo  { font-size: 1.1em; color: #c00; margin-top: 10px; }
+    button { margin-top: 20px; padding: 10px 20px; font-size: 1.1em; width: 100%; }
+
+    .toggle-buttons button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+  </style>
+</head>
+<body>
+<nav class="navbar">
+    <h1><a href="/">🏠 Home</a></h1>
+    <span class="nav-title">Demo Dijkstra - Ruta más Segura</span>
+</nav>
+
+<div class="demo-wrapper">
+
+  <div class="map-wrapper">
+    <div class="controls">
+      <span>👉 <b style="color: #00ff7f;">SELECCIONÁ UN PUNTO INICIO</b> y <b style="color: #ff4500;">UN PUNTO FIN</b> 👈</span>
+    </div>
+
+    <div class="map-container">
+      <img src="/map-base.jpg" alt="Mapa de Elden Ring" class="map-image" id="img-base">
+      <img src="/map-normal.jpg" alt="Mapa con caminos normales" class="map-image overlay" id="img-normal">
+      <img src="/map-todos.jpg" alt="Mapa con todos los caminos" class="map-image overlay" id="img-todos">
+
+      <div class="marker" id="necrolimbo" data-name="Necrolimbo">
+        <span class="marker-label">Necrolimbo</span>
+      </div>
+      <div class="marker" id="liurnia"    data-name="Liurnia">
+        <span class="marker-label">Liurnia</span>
+      </div>
+      <div class="marker" id="caelid"     data-name="Caelid">
+        <span class="marker-label">Caelid</span>
+      </div>
+      <div class="marker" id="altus"      data-name="Meseta Altus">
+        <span class="marker-label">Meseta Altus</span>
+      </div>
+      <div class="marker" id="mountain" data-name="Picos de los Gigantes">
+        <span class="marker-label">Picos de los Gigantes</span>
+      </div>
+      <div class="marker" id="peninsula"    data-name="Peninsula">
+        <span class="marker-label">Peninsula</span>
+      </div>
+      <div class="marker" id="gelmir"       data-name="Mt. Gelmir">
+        <span class="marker-label">Mt. Gelmir</span>
+      </div>
+      <div class="marker" id="dragonbarrow" data-name="Dragonbarrow">
+        <span class="marker-label">Dragonbarrow</span>
+      </div>
+      <div class="marker" id="prohibido"    data-name="Tierras Prohibidas">
+        <span class="marker-label">Tierras Prohibidas</span>
+      </div>
+      <div class="marker" id="nieve"        data-name="Nieve (Oeste)">
+        <span class="marker-label">Nieve (Oeste)</span>
+      </div>
+
+      <div class="cost-label path-normal" id="cost-necro-liurnia">34</div>
+      <div class="cost-label path-normal" id="cost-necro-peninsula">25</div>
+      <div class="cost-label path-normal" id="cost-necro-caelid">100</div>
+      <div class="cost-label path-normal" id="cost-necro-dragonbarrow">70</div>
+      <div class="cost-label path-normal" id="cost-liurnia-altus">30</div>
+      <div class="cost-label path-normal" id="cost-liurnia-gelmir">40</div>
+      <div class="cost-label path-hidden" id="cost-caelid-altus">40</div>
+      <div class="cost-label path-normal" id="cost-caelid-dragonbarrow">60</div>
+      <div class="cost-label path-normal" id="cost-altus-gelmir">20</div>
+      <div class="cost-label path-normal" id="cost-altus-prohibido">50</div>
+      <div class="cost-label path-normal" id="cost-mountain-prohibido">70</div>
+      <div class="cost-label path-hidden" id="cost-mountain-dragonbarrow">20</div>
+      <div class="cost-label path-normal" id="cost-mountain-nieve">30</div>
+      <div class="cost-label path-hidden" id="cost-peninsula-necro">10</div>
+      <div class="cost-label path-hidden" id="cost-peninsula-caelid">5</div>
+      <div class="cost-label path-normal" id="cost-nieve-altus">100</div>
+    </div>
+  </div>
+
+  <div id="results-panel">
+    <h2>Resultado del Cálculo</h2>
+    <div id="camino">Esperando selección...</div>
+    <div id="costo"></div>
+    <button id="reset" style="display:none;">Limpiar Selección</button>
+
+    <hr style="margin: 20px 0;">
+
+    <div class="toggle-buttons">
+      <button id="btn-show-normal">Mostrar Caminos Normales</button>
+      <button id="btn-show-all">Mostrar Todos los Caminos</button>
+      <button id="btn-hide-all">Ocultar Caminos</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let startPoint = null;
+  let endPoint = null;
+
+  const markers = document.querySelectorAll('.marker');
+  const caminoEl = document.getElementById('camino');
+  const costoEl = document.getElementById('costo');
+  const resetBtn = document.getElementById('reset');
+
+  markers.forEach(marker => {
+      marker.addEventListener('click', onMarkerClick);
+  });
+  resetBtn.addEventListener('click', clearSelection);
+
+  function onMarkerClick(event) {
+      const selectedName = event.target.dataset.name;
+      const selectedMarker = event.target;
+
+      if (startPoint === null) {
+          // Seleccionando INICIO
+          startPoint = selectedName;
+          selectedMarker.classList.add('start');
+          caminoEl.textContent = `Desde: ${startPoint}`;
+          costoEl.textContent = 'Seleccioná un destino...';
+      } else if (endPoint === null && selectedName !== startPoint) {
+          // Seleccionando FIN
+          endPoint = selectedName;
+          selectedMarker.classList.add('end');
+          caminoEl.textContent = `Calculando: ${startPoint} ➔ ${endPoint}`;
+
+          calculatePath(startPoint, endPoint);
+      }
+  }
+
+  async function calculatePath(from, to) {
+      const url = `/map/route?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+
+      try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
+          const data = await response.json();
+
+          // Muestra resultados de texto
+          if (data.costoTotal === -1) {
+              caminoEl.textContent = data.camino.join(' ➔ ');
+              costoEl.textContent = '';
+          } else {
+              caminoEl.textContent = `Camino: ${data.camino.join(' ➔ ')}`;
+              costoEl.textContent = `Costo Total: ${data.costoTotal} enemigos`;
+
+              // ¡NUEVO! Ilumina el camino
+              highlightPath(data.camino);
+          }
+          resetBtn.style.display = 'inline-block';
+
+      } catch (error) {
+          console.error('Error al calcular la ruta:', error);
+          caminoEl.textContent = 'Error al calcular la ruta.';
+          costoEl.textContent = '';
+          resetBtn.style.display = 'inline-block';
+      }
+  }
+
+  function highlightPath(pathArray) {
+      pathArray.forEach(nodeName => {
+          // Buscamos el marcador por su 'data-name'
+          const marker = document.querySelector(`.marker[data-name="${nodeName}"]`);
+          if (marker) {
+              marker.classList.add('path-node');
+          }
+      });
+  }
+
+  function clearSelection() {
+      startPoint = null;
+      endPoint = null;
+
+      markers.forEach(marker => {
+          // Limpia todas las clases de estado
+          marker.classList.remove('start', 'end', 'path-node');
+      });
+
+      caminoEl.textContent = 'Seleccioná un punto de INICIO...';
+      costoEl.textContent = '';
+      resetBtn.style.display = 'none';
+  }
+  const btnShowNormal = document.getElementById('btn-show-normal');
+        const btnShowAll = document.getElementById('btn-show-all');
+        const btnHideAll = document.getElementById('btn-hide-all');
+
+        // ¡Ojo! Solo 2 overlays, la base no es un overlay
+        const imgNormal = document.getElementById('img-normal');
+        const imgTodos = document.getElementById('img-todos');
+
+        // Referencias a las etiquetas de costo
+        const costosNormales = document.querySelectorAll('.path-normal');
+        const costosOcultos = document.querySelectorAll('.path-hidden');
+
+        // Conectamos los botones
+        btnShowNormal.addEventListener('click', () => showPaths('normal'));
+        btnShowAll.addEventListener('click', () => showPaths('all'));
+        btnHideAll.addEventListener('click', () => showPaths('none'));
+
+
+        /**
+         * Muestra u oculta las capas de overlays y costos
+         * @param {'normal' | 'all' | 'none'} level
+         */
+        function showPaths(level) {
+
+            // 1. Ocultar todas las capas (imágenes y costos)
+            imgNormal.style.display = 'none';
+            imgTodos.style.display = 'none';
+            costosNormales.forEach(c => c.style.display = 'none');
+            costosOcultos.forEach(c => c.style.display = 'none');
+
+            // 2. Mostrar las capas pedidas
+            if (level === 'normal') {
+                // Mostrar capa "Normal"
+                imgNormal.style.display = 'block';
+                // Mostrar costos "Normales"
+                costosNormales.forEach(c => c.style.display = 'block');
+
+            } else if (level === 'all') {
+                // Mostrar capa "Todos"
+                imgTodos.style.display = 'block';
+                // Mostrar TODOS los costos
+                costosNormales.forEach(c => c.style.display = 'block');
+                costosOcultos.forEach(c => c.style.display = 'block');
+            }
+            // Si el level es 'none', ya se ocultó todo en el paso 1.
+        }
+
+</script>
+</body>
+</html>

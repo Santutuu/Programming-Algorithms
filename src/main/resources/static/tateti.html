@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TATETI - Algoritmo Minimax</title>
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0; 
+      background: linear-gradient(135deg, #C0603D, #7A2E2E);
+      color: #2c1e16;
+    }
+
+    .container { 
+      max-width: 500px; 
+      margin: 0 auto; 
+      padding: 2em;
+      background: #F7F3EE; 
+      border-radius: 12px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+      border: 2px solid #4A2C2A;
+    }
+
+    /* --- Barra de Navegación --- */
+    .navbar {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      background: linear-gradient(135deg, #4A2C2A, #7A2E2E);
+      width: 100%;
+      padding: 2em;
+      box-sizing: border-box;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+      font-size: 1rem;
+      font-weight: 600;
+      color: white;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      transition: color 0.25s ease, transform 0.25s ease;
+    }
+
+    .navbar a:hover {
+      color: #f3dfb5;
+      transform: translateY(-1px);
+    }
+
+    .navbar .nav-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .navbar h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      font-size: 1.1em;
+      font-weight: bold;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+
+    .navbar a:hover {
+      background-color: #555;
+    }
+
+    /* --- Tablero TATETI --- */
+    #tablero {
+      display: inline-block;
+      border: 3px solid #333;
+      border-radius: 8px;
+      margin: 20px 0;
+      background: white;
+    }
+
+    .fila {
+      display: flex;
+    }
+
+    .celda {
+      width: 80px;
+      height: 80px;
+      border: 2px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      font-weight: bold;
+      cursor: pointer;
+      background: #f9f9f9;
+      transition: background-color 0.2s;
+    }
+
+    .celda:hover {
+      background: #e9e9e9;
+    }
+
+    .celda:empty:hover::before {
+      content: "?";
+      color: #ccc;
+    }
+
+    /* Quitar bordes internos */
+    .fila:not(:last-child) .celda {
+      border-bottom: 2px solid #333;
+    }
+
+    .celda:not(:last-child) {
+      border-right: 2px solid #333;
+    }
+
+    /* Colores para X y O */
+    .celda[data-content="X"] {
+      color: #e74c3c; /* Rojo para X */
+    }
+
+    .celda[data-content="O"] {
+      color: #3498db; /* Azul para O */
+    }
+
+    /* --- Controles del Juego --- */
+    .controles {
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background: #007bff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    button:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+
+    #reiniciar {
+      background: #28a745;
+    }
+
+    #reiniciar:hover {
+      background: #1e7e34;
+    }
+
+    /* --- Estado del Juego --- */
+    #estado {
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: bold;
+      margin: 15px 0;
+      padding: 10px;
+      border-radius: 4px;
+      background: #f8f9fa;
+    }
+
+    .jugando {
+      color: #17a2b8;
+    }
+
+    .ganador {
+      color: #28a745;
+      background: #d4edda !important;
+    }
+
+    .perdedor {
+      color: #dc3545;
+      background: #f8d7da !important;
+    }
+
+    .empate {
+      color: #6c757d;
+      background: #e2e3e5 !important;
+    }
+
+    /* --- Información --- */
+    .info {
+      background: #e7f3ff;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 15px 0;
+      border-left: 4px solid #007bff;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <h1><a href="/">🏠 Home</a></h1>
+    <span class="nav-title">TATETI - Algoritmo Minimax</span>
+</nav>
+
+<div class="container" style="margin-top: 1rem;">
+  <h1 style="margin-top:0;">Juego IA - Minimax</h1>
+  
+  <div class="info">
+    <p><strong>Jugador:</strong> <span style="color: #e74c3c">X</span> | <strong>IA:</strong> <span style="color: #3498db">O</span></p>
+    <p>Your goal is to form a line of three X's horizontally, vertically, or diagonally.</p>
+  </div>
+
+  <div id="estado" class="jugando">Tu turno (X)</div>
+
+  <div style="text-align: center;">
+    <div id="tablero">
+      <div class="fila">
+        <div class="celda" data-fila="0" data-columna="0"></div>
+        <div class="celda" data-fila="0" data-columna="1"></div>
+        <div class="celda" data-fila="0" data-columna="2"></div>
+      </div>
+      <div class="fila">
+        <div class="celda" data-fila="1" data-columna="0"></div>
+        <div class="celda" data-fila="1" data-columna="1"></div>
+        <div class="celda" data-fila="1" data-columna="2"></div>
+      </div>
+      <div class="fila">
+        <div class="celda" data-fila="2" data-columna="0"></div>
+        <div class="celda" data-fila="2" data-columna="1"></div>
+        <div class="celda" data-fila="2" data-columna="2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controles">
+    <button id="reiniciar">New Game</button>
+  </div>
+
+  <div class="info">
+    <p><strong>Algorithm:</strong> Minimax</p>
+    
+  </div>
+</div>
+
+<script>
+  class TatetiGame {
+    constructor() {
+      this.tableroElement = document.getElementById('tablero');
+      this.estadoElement = document.getElementById('estado');
+      this.reiniciarBtn = document.getElementById('reiniciar');
+      this.juegoActivo = false;
+      
+      this.inicializarEventos();
+      this.probarBackend();
+    }
+
+    async probarBackend() {
+      try {
+        // Primero probamos si el backend responde
+        const testResponse = await fetch('/tateti/test');
+        if (!testResponse.ok) {
+          throw new Error('Backend no responde');
+        }
+        console.log('✅ Backend conectado');
+        this.nuevoJuego();
+      } catch (error) {
+        console.error('❌ Error conectando al backend:', error);
+        this.estadoElement.textContent = 'Error: No se puede conectar al servidor';
+        this.estadoElement.className = 'perdedor';
+      }
+    }
+
+    inicializarEventos() {
+      // Eventos para las celdas
+      this.tableroElement.addEventListener('click', (e) => {
+        if (!this.juegoActivo) return;
+        
+        const celda = e.target.closest('.celda');
+        if (celda && !celda.textContent) {
+          const fila = parseInt(celda.dataset.fila);
+          const columna = parseInt(celda.dataset.columna);
+          this.hacerMovimiento(fila, columna);
+        }
+      });
+
+      // Evento para reiniciar
+      this.reiniciarBtn.addEventListener('click', () => {
+        this.nuevoJuego();
+      });
+    }
+
+    async nuevoJuego() {
+      try {
+        const response = await fetch('/tateti/new', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const gameState = await response.json();
+        console.log('Nuevo juego:', gameState);
+        this.actualizarInterfaz(gameState);
+        this.juegoActivo = true;
+      } catch (error) {
+        console.error('Error al crear nuevo juego:', error);
+        this.estadoElement.textContent = `Error al iniciar: ${error.message}`;
+        this.estadoElement.className = 'perdedor';
+        this.juegoActivo = false;
+      }
+    }
+
+    async hacerMovimiento(fila, columna) {
+      if (!this.juegoActivo) return;
+
+      try {
+        const response = await fetch('/tateti/move', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ fila, columna })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        const gameState = await response.json();
+        console.log('Movimiento realizado:', gameState);
+        this.actualizarInterfaz(gameState);
+
+        // Si el juego terminó, desactivar
+        if (gameState.terminal) {
+          this.juegoActivo = false;
+        }
+      } catch (error) {
+        console.error('Error al hacer movimiento:', error);
+        this.estadoElement.textContent = `Error: ${error.message}`;
+        this.estadoElement.className = 'perdedor';
+      }
+    }
+
+    actualizarInterfaz(gameState) {
+      // Renderizar tablero
+      this.renderBoard(gameState.board);
+      
+      // Actualizar estado del juego
+      this.actualizarEstado(gameState);
+    }
+
+    renderBoard(board) {
+      document.querySelectorAll('.celda').forEach(celda => {
+        const fila = celda.dataset.fila;
+        const columna = celda.dataset.columna;
+        const valor = board[fila][columna];
+        
+        celda.textContent = valor === ' ' ? '' : valor;
+        celda.dataset.content = valor;
+        
+        // Deshabilitar celdas ocupadas
+        if (valor !== ' ') {
+          celda.style.cursor = 'not-allowed';
+          celda.style.background = '#f8f9fa';
+        } else {
+          celda.style.cursor = 'pointer';
+          celda.style.background = '#f9f9f9';
+        }
+      });
+    }
+
+    actualizarEstado(gameState) {
+      if (gameState.terminal) {
+        if (gameState.winner === 'X') {
+          this.estadoElement.textContent = '🎉 ¡Ganaste!';
+          this.estadoElement.className = 'ganador';
+        } else if (gameState.winner === 'O') {
+          this.estadoElement.textContent = '🤖 La IA ganó';
+          this.estadoElement.className = 'perdedor';
+        } else {
+          this.estadoElement.textContent = '🤝 Empate';
+          this.estadoElement.className = 'empate';
+        }
+      } else {
+        if (gameState.currentPlayer === 'X') {
+          this.estadoElement.textContent = 'Tu turno (X)';
+          this.estadoElement.className = 'jugando';
+        } else {
+          this.estadoElement.textContent = 'Turno de la IA (O)...';
+          this.estadoElement.className = 'jugando';
+        }
+      }
+    }
+  }
+
+  // Inicializar el juego cuando se carga la página
+  document.addEventListener('DOMContentLoaded', () => {
+    new TatetiGame();
+  });
+</script>

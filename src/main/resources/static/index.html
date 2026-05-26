@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Algorithm Visualizer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1A0F0A, #2D1810);
+            color: #F5E6D3;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4A2C2A, #7A2E2E);
+            color: #FFDAB9;
+            padding: 1.5em;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2em auto;
+            padding: 2em;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2em;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #3D1F1F, #5A2D2D);
+            border: 2px solid #C0603D;
+            border-radius: 12px;
+            padding: 2em;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+        }
+
+        .card h3 {
+            color: #FFDAB9;
+            margin: 0 0 1em 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .card p {
+            color: #E6C9A8;
+            margin: 0 0 1.5em 0;
+            line-height: 1.6;
+        }
+
+        .btn-demo {
+            background: linear-gradient(135deg, #C0603D, #A0522D);
+            color: #F5E6D3;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-demo:hover {
+            background: linear-gradient(135deg, #A0522D, #8B4513);
+            transform: translateY(-2px);
+        }
+
+        .btn-demo:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Interactive Algorithm Visualizer</h1>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h3>BFS vs DFS</h3>
+            <p>Compare how BFS guarantees shortest paths while DFS explores faster but deeper in a Pac-Man maze.</p>
+            <a href="pacman.html" class="btn-demo">▶ Ver Demo</a>
+        </div>
+
+        <div class="card">
+            <h3>Dijkstra Algorithm</h3>
+            <p>Shortest path visualization on weighted graphs. Interactive map showing the safest route calculation in Elden Ring world with enemy density as weights.</p>
+            <a href="map.html" class="btn-demo">▶ Ver Demo</a>
+        </div>
+
+        <div class="card">
+            <h3>Minimax Algorithm</h3>
+            <p>Play Tic-Tac-Toe against an AI that uses the Minimax algorithm, recursively exploring game states until reaching terminal utilities to choose the optimal move.</p>
+            <a href="tateti.html" class="btn-demo">▶ Ver Demo</a>
+        </div>
+
+        <div class="card">
+            <h3>Quicksort Visualization</h3>
+            <p>Quicksort visualization using a divide-and-conquer strategy, partitioning elements around a pivot and recursively sorting subarrays in average O(n log n) time.</p>
+            <a href="inventory.html" class="btn-demo">▶ Ver Demo</a>
+        </div>
+
+        <div class="card">
+            <h3>Branch and Bound</h3>
+            <p>Branch and Bound optimization that explores solutions while pruning suboptimal paths, maximizing poise under weight constraints.</p>
+            <a href="armor.html" class="btn-demo">▶ Ver Demo</a>
+        </div>
+    </div>
+
+</body>
+</html>

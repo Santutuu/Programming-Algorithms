@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Load Inventory</title>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding-top: 80px;
+      padding-left: 20px;
+      padding-right: 20px;
+      padding-bottom: 20px;
+      background: linear-gradient(135deg, #C0603D, #7A2E2E);
+      color: #2c1e16;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .page-wrapper {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 1.5rem;
+      width: min(100%, 1140px);
+      min-width: 1060px;
+      margin: 5rem auto 2rem auto;
+      padding: 0 1rem;
+      overflow-x: auto;
+    }
+
+    .container {
+      flex: 1 1 680px;
+      min-width: 540px;
+      padding: 2.5rem;
+      background: #F7F3EE;
+      border-radius: 14px;
+      border: 2px solid #4A2C2A;
+      box-shadow: 0 16px 30px rgba(0,0,0,0.2);
+    }
+
+    .main-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .info-panel {
+      flex: 0 0 320px;
+      min-width: 320px;
+      background: #ffffff;
+      border: 2px solid #4A2C2A;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 14px 24px rgba(0,0,0,0.08);
+      height: fit-content;
+    }
+
+    .info-panel h3 {
+      margin-top: 0;
+    }
+
+    .sidebar-note {
+      background: #e8f6f2;
+      border: 1px solid #c8e8dd;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+      color: #4A2C2A;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .sidebar h3 {
+      text-align: left;
+      margin-top: 0;
+    }
+
+    .sidebar p, .sidebar ul {
+      margin-bottom: 1rem;
+      color: #3d3d3d;
+    }
+
+    .sidebar-note {
+      background: #e8f6f2;
+      border: 1px solid #c8e8dd;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .sidebar-note strong {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    div { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input { width: 95%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 10px 20px; font-size: 16px; font-weight: bold; color: #fff;
+             background: #007bff; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    #mensaje { margin-top: 15px; font-weight: bold; }
+
+    /* --- Barra de Navegación --- */
+    .navbar {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        background: linear-gradient(135deg, #4A2C2A, #7A2E2E);
+        width: 100%;
+        padding: 12px 20px;
+        box-sizing: border-box;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        min-height: 70px;
+    }
+
+    .navbar h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .navbar h1 a {
+        color: white;
+        text-decoration: none;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .navbar .nav-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: white;
+    }
+
+    .navbar a {
+        color: white;
+        text-decoration: none;
+        font-size: 1.2rem;
+        font-weight: 700;
+        padding: 8px 12px;
+        border-radius: 4px;
+    }
+
+    .navbar a:hover {
+        background-color: rgba(255,255,255,0.15);
+    }
+
+    /* --- Styles for the item table --- */
+    .item-table-container {
+        margin-top: 2em;
+        padding-top: 1.5em;
+        border-top: 2px solid #eee;
+    }
+    .item-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1em;
+    }
+    .item-table th, .item-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    .item-table th {
+        background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <h1><a href="/">🏠 Home</a></h1>
+    <span class="nav-title">Item Inventory</span>
+</nav>
+
+<div class="page-wrapper">
+  <div class="container">
+    <div class="main-panel">
+    <h2>🎮 Add Item to Inventory</h2>
+
+    <div class="item-table-container">
+        <h3>Current Inventory Items</h3>
+        <table class="item-table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Quantity</th>
+                <th>Category</th>
+            </tr>
+            </thead>
+            <tbody id="inventory-table-body">
+            </tbody>
+        </table>
+    </div>
+
+    <hr>
+
+    <form id="itemForm">
+      <div>
+        <label for="name">Item Name:</label>
+        <input type="text" id="name" name="name" value="Wooden Sword" required>
+      </div>
+      <div>
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" value="1" required>
+      </div>
+      <div>
+        <label for="category">Category:</label>
+        <input type="text" id="category" name="category" value="Weapon" required>
+      </div>
+      <button type="submit">Add Item</button>
+    </form>
+
+    <p id="mensaje"></p>
+
+    <hr>
+    <p>
+      <a href="/inventory/sorted/by-quantity" target="_blank">View sorted inventory (GET)</a>
+    </p>
+  </div>
+</div>
+  <aside class="info-panel">
+    <h3>Sorting Info Panel</h3>
+    <div class="sidebar-note">
+      <strong>How it works</strong>
+      <p>The inventory is sorted by quantity from smallest to largest. The backend uses a fast QuickSort-style algorithm to order items efficiently before returning them.</p>
+    </div>
+    <div class="sidebar-note">
+      <strong>QuickSort behavior</strong>
+      <p>This means the sorting process picks a pivot and partitions items, reducing the number of comparisons needed on average.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+    // References to form elements
+    const form = document.getElementById('itemForm');
+    const mensajeEl = document.getElementById('mensaje');
+
+    // Reference to the table body
+    const tableBody = document.getElementById('inventory-table-body');
+
+    // --- Main function to load items ---
+    async function cargarItems() {
+        try {
+            const response = await fetch('/inventory/all');
+            const items = await response.json();
+
+            // Clear the table
+            tableBody.innerHTML = '';
+
+            // Fill the table
+            if (items.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="3">No items loaded.</td></tr>';
+            } else {
+                items.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.name}</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.category}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading items:', error);
+            tableBody.innerHTML = '<tr><td colspan="3">Error loading items.</td></tr>';
+        }
+    }
+
+    // --- Form event listener ---
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const data = {
+            name: document.getElementById('name').value,
+            quantity: parseInt(document.getElementById('quantity').value, 10),
+            category: document.getElementById('category').value
+        };
+
+        mensajeEl.textContent = 'Adding item...';
+
+        fetch('/inventory/', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            mensajeEl.textContent = `Item "${data.name}" added/updated!`;
+            mensajeEl.style.color = 'green';
+
+            // Reload the table
+            cargarItems();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            mensajeEl.textContent = 'Error adding item.';
+            mensajeEl.style.color = 'red';
+        });
+    });
+
+    // --- Initial load when the page opens ---
+    document.addEventListener('DOMContentLoaded', cargarItems);
+</script>

@@ -1,0 +1,48 @@
+Proyecto ra�z
++-- .github                # Configuraci�n de GitHub (hooks, scripts)
++-- .vscode                # Configuraci�n del editor
++-- demo                   # Aplicaci�n principal
+    +-- src
+    �   +-- main
+    �   �   +-- java
+    �   �   �   +-- com.example.demo
+    �   �   �       +-- BFS_DFS_Pacman
+    �   �   �       �   +-- controller
+    �   �   �       �   +-- service
+    �   �   �       �   +-- util
+    �   �   �       +-- BranchAndBound_EldenRing
+    �   �   �       �   +-- controller
+    �   �   �       �   +-- model
+    �   �   �       �   +-- repo
+    �   �   �       �   +-- services
+    �   �   �       +-- Demo_Movies
+    �   �   �       �   +-- controller
+    �   �   �       �   +-- model
+    �   �   �       �   +-- repo
+    �   �   �       +-- Dijkstra_EldenRing
+    �   �   �       �   +-- controller
+    �   �   �       �   +-- model
+    �   �   �       �   �   +-- mapa
+    �   �   �       �   +-- repo
+    �   �   �       �   +-- services
+    �   �   �       +-- Minimax_Tateti
+    �   �   �       �   +-- controller
+    �   �   �       �   +-- service
+    �   �   �       �   +-- util
+    �   �   �       +-- QuickSort_Minecraft
+    �   �   �       �   +-- controller
+    �   �   �       �   +-- model
+    �   �   �       �   +-- repo
+    �   �   �       �   +-- services
+    �   �   �       �   +-- util
+    �   �   �       +-- config
+    �   �   +-- resources
+    �   �       +-- application.properties
+    �   �       +-- static
+    �   �           +-- armor.html
+    �   �           +-- index.html
+    �   �           +-- inventory.html
+    �   �           +-- map.html
+    �   �           +-- pacman.html
+    �   �           +-- tateti.html
+    
