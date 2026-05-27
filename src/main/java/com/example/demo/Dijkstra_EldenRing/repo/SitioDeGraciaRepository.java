@@ -1,15 +1,10 @@
 package com.example.demo.Dijkstra_EldenRing.repo;
 
-
 import com.example.demo.Dijkstra_EldenRing.model.mapa.SitioDeGraciaEntity;
-import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
-import org.springframework.data.neo4j.repository.query.Query;
-import reactor.core.publisher.Mono;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface SitioDeGraciaRepository extends ReactiveNeo4jRepository<SitioDeGraciaEntity, String> {
-
-    // Consulta de Cypher para limpiar la BD de mapas (para el seeder)
-    @Query("MATCH (h:SitioDeGracia) DETACH DELETE h")
-    Mono<Void> deleteAllSitiosDeGracia();
-
+@Repository
+public interface SitioDeGraciaRepository extends JpaRepository<SitioDeGraciaEntity, String> {
+    // Los métodos CRUD básicos (save, findAll, deleteAll) ya vienen incluidos y no usan Mono/Flux.
 }

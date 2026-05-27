@@ -1,37 +1,37 @@
 package com.example.demo.Dijkstra_EldenRing.model.mapa;
 
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Relationship;
-
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
-@Node("SitioDeGracia")
-public class SitioDeGraciaEntity { // Tu nombre de clase
+@Entity
+@Table(name = "sitios_de_gracia")
+public class SitioDeGraciaEntity {
 
     @Id
-    private final String name;
+    private String name;
 
-    @Relationship(type = "RUTA", direction = Relationship.Direction.OUTGOING)
-    private Set<RutaEntity> rutas; // ¡Acá usamos tu clase de Ruta!
+    // CascadeType.ALL y orphanRemoval aseguran que si borrás un sitio, se limpien sus rutas asociadas
+    @OneToMany(mappedBy = "origen", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<RutaEntity> rutas = new HashSet<>();
+
+    // Constructor vacío obligatorio para JPA
+    public SitioDeGraciaEntity() {}
 
     public SitioDeGraciaEntity(String name) {
         this.name = name;
-        this.rutas = new HashSet<>();
     }
 
-    // Método para agregar caminos
-    public void addRuta(SitioDeGraciaEntity destino, int costoEnemigos) { // ¡Usamos tus clases!
-        this.rutas.add(new RutaEntity(destino, costoEnemigos));
+    // Método para agregar caminos adaptado a JPA
+    public void addRuta(SitioDeGraciaEntity destino, int costoEnemigos) {
+        RutaEntity nuevaRuta = new RutaEntity(this, destino, costoEnemigos);
+        this.rutas.add(nuevaRuta);
     }
 
-    // --- Getters ---
-    public String getName() {
-        return name;
-    }
+    // --- Getters y Setters ---
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public Set<RutaEntity> getRutas() { // ¡Usamos tus clases!
-        return rutas;
-    }
+    public Set<RutaEntity> getRutas() { return rutas; }
+    public void setRutas(Set<RutaEntity> rutas) { this.rutas = rutas; }
 }

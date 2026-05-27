@@ -1,16 +1,22 @@
 package com.example.demo.BranchAndBound_EldenRing.model;
 
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-@Node("Armor")
+@Entity
+@Table(name = "armors")
 public class ArmorEntity {
 
     @Id
-    private final String name;
-    private final int peso;
-    private final int poise; // El "valor" que queremos maximizar
-    private final String slot; // ¡NUEVO! ej: "HEAD", "CHEST", "ARMS", "LEGS"
+    private String name; // Se quitó el 'final'
+    private int peso;    // Se quitó el 'final'
+    private int poise;   // Se quitó el 'final'
+    private String slot; // Se quitó el 'final'
+
+    // Constructor vacío obligatorio para JPA
+    public ArmorEntity() {
+    }
 
     public ArmorEntity(String name, int peso, int poise, String slot) {
         this.name = name;
@@ -19,9 +25,16 @@ public class ArmorEntity {
         this.slot = slot;
     }
 
-    // --- Getters ---
+    // --- Getters y Setters ---
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
     public int getPeso() { return peso; }
+    public void setPeso(int peso) { this.peso = peso; }
+
     public int getPoise() { return poise; }
+    public void setPoise(int poise) { this.poise = poise; }
+
     public String getSlot() { return slot; }
+    public void setSlot(String slot) { this.slot = slot; }
 }

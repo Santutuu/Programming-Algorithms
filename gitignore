@@ -16,3 +16,6 @@ Thumbs.db
 
 # Node (por si tenés algo frontend)
 node_modules/
+
+/target/
+*.class

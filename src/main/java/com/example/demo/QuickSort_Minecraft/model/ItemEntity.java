@@ -1,26 +1,32 @@
 package com.example.demo.QuickSort_Minecraft.model;
 
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-@Node("Item") // Lo guardamos en Neo4j como un nodo "Item"
+@Entity 
+@Table(name = "items") // Nombre de la tabla en Postgres
 public class ItemEntity {
 
-    @Id
-    private final String name; // ej: "Pico de Diamante", "Redstone"
+    @Id // Clave primaria relacional
+    private String name; // Se removió el 'final' obligatorio para JPA
 
-    private final Integer quantity; // ej: 1, 64
+    private Integer quantity; 
 
-    private final String category; // ej: "Herramienta", "Recurso"
+    private String category; 
 
-    // Constructor
+    // Constructor vacío obligatorio que exige JPA/Hibernate para poder instanciar filas
+    public ItemEntity() {
+    }
+
+    // Constructor completo que usás en tu Seeder de 'DemoApplication'
     public ItemEntity(String name, Integer quantity, String category) {
         this.name = name;
         this.quantity = quantity;
         this.category = category;
     }
 
-    // Getters (¡Importante! Los necesitamos para el Comparator)
+    // --- Getters ---
     public String getName() {
         return name;
     }
@@ -31,5 +37,18 @@ public class ItemEntity {
 
     public String getCategory() {
         return category;
+    }
+
+    // --- Setters (Recomendados para el mapeo dinámico de Hibernate) ---
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }

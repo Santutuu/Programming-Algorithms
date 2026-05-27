@@ -1,9 +1,10 @@
 package com.example.demo.QuickSort_Minecraft.repo;
 
-import com.example.demo.QuickSort_Minecraft.model.ItemEntity;
-import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.example.demo.QuickSort_Minecraft.model.ItemEntity; // 🌟 Que importe ItemEntity
 
-// Usamos el repositorio reactivo como pide el ejemplo
-public interface ItemRepository extends ReactiveNeo4jRepository<ItemEntity, String> {
-    // Con esto ya tenemos el .findAll()
+@Repository
+public interface ItemRepository extends JpaRepository<ItemEntity, String> { 
+    // 🌟 ¡OJO ACÁ! Tenía que ser <ItemEntity, String> y no <ArmorEntity, String>
 }

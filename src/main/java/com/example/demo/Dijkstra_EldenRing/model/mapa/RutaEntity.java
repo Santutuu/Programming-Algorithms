@@ -1,31 +1,43 @@
 package com.example.demo.Dijkstra_EldenRing.model.mapa;
 
-import org.springframework.data.neo4j.core.schema.RelationshipId;
-import org.springframework.data.neo4j.core.schema.RelationshipProperties;
-import org.springframework.data.neo4j.core.schema.TargetNode;
+import jakarta.persistence.*;
 
-@RelationshipProperties
-public class RutaEntity { // Tu nombre de clase
+@Entity
+@Table(name = "rutas")
+public class RutaEntity {
 
-    @RelationshipId
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @TargetNode
-    private SitioDeGraciaEntity destino; // ¡Acá usamos tu clase!
+    @ManyToOne
+    @JoinColumn(name = "origen_name", nullable = false)
+    private SitioDeGraciaEntity origen;
 
-    private final int enemigos;
+    @ManyToOne
+    @JoinColumn(name = "destino_name", nullable = false)
+    private SitioDeGraciaEntity destino;
 
-    public RutaEntity(SitioDeGraciaEntity destino, int enemigos) { // ¡Acá también!
+    private int enemigos;
+
+    // Constructor vacío obligatorio para JPA
+    public RutaEntity() {}
+
+    public RutaEntity(SitioDeGraciaEntity origen, SitioDeGraciaEntity destino, int enemigos) {
+        this.origen = origen;
         this.destino = destino;
         this.enemigos = enemigos;
     }
 
-    // --- Getters ---
-    public SitioDeGraciaEntity getDestino() {
-        return destino;
-    }
+    // --- Getters y Setters ---
+    public Long getId() { return id; }
+    
+    public SitioDeGraciaEntity getOrigen() { return origen; }
+    public void setOrigen(SitioDeGraciaEntity origen) { this.origen = origen; }
 
-    public int getEnemigos() {
-        return enemigos;
-    }
+    public SitioDeGraciaEntity getDestino() { return destino; }
+    public void setDestino(SitioDeGraciaEntity destino) { this.destino = destino; }
+
+    public int getEnemigos() { return enemigos; }
+    public void setEnemigos(int enemigos) { this.enemigos = enemigos; }
 }

@@ -24,9 +24,6 @@ public class BranchAndBoundService {
     private Map<String, List<ArmorEntity>> itemsBySlot;
     private Map<String, Integer> maxPoisePerSlot;
 
-    // --- ¡ESTE ES EL CONSTRUCTOR! ---
-    // Se llama igual que la clase ("ArmorService")
-    // y NO tiene tipo de retorno.
     public BranchAndBoundService(ArmorRepository armorRepository) {
         this.armorRepository = armorRepository;
     }
@@ -35,18 +32,20 @@ public class BranchAndBoundService {
      * Devuelve todas las armaduras de la base de datos.
      */
     public List<ArmorEntity> getAllArmor() {
-        return armorRepository.findAll().collectList().block();
+        // 🌟 CORREGIDO: JpaRepository ya devuelve directamente un List<ArmorEntity>
+        return armorRepository.findAll(); 
     }
 
     /**
      * Agrega una nueva armadura a la base de datos.
      */
     public void addArmor(ArmorEntity armor) {
-        armorRepository.save(armor).block();
+        // 🌟 CORREGIDO: Se saca el .block(), el .save() de JPA procesa directo
+        armorRepository.save(armor);
     }
 
 
-    // --- ESTA ES LA CLASE INTERNA QUE FALTABA ---
+    // --- CLASE INTERNA ---
     public static class OptimizationResult {
         private final List<ArmorEntity> items;
         private final int totalPeso;
@@ -58,7 +57,6 @@ public class BranchAndBoundService {
             this.totalPoise = totalPoise;
         }
 
-        // Getters para que el JSON funcione
         public List<ArmorEntity> getItems() { return items; }
         public int getTotalPeso() { return totalPeso; }
         public int getTotalPoise() { return totalPoise; }
@@ -71,7 +69,8 @@ public class BranchAndBoundService {
      * Prepara los datos para el algoritmo B&B
      */
     private void setupAlgorithmData() {
-        List<ArmorEntity> allItems = armorRepository.findAll().collectList().block();
+        // 🌟 CORREGIDO: Quitamos .collectList().block() acá también
+        List<ArmorEntity> allItems = armorRepository.findAll();
 
         itemsBySlot = allItems.stream()
                 .collect(Collectors.groupingBy(ArmorEntity::getSlot));
@@ -90,7 +89,6 @@ public class BranchAndBoundService {
 
     /**
      * Método público para iniciar la optimización.
-     * ESTE SÍ devuelve algo: un "OptimizationResult"
      */
     public OptimizationResult optimizarLoadout(int maxPeso) {
         setupAlgorithmData();
@@ -101,13 +99,11 @@ public class BranchAndBoundService {
 
         int bestWeight = bestLoadout.stream().mapToInt(ArmorEntity::getPeso).sum();
 
-        // Y ESTE es su "return"
         return new OptimizationResult(bestLoadout, bestWeight, bestPoise);
     }
 
     /**
      * El algoritmo B&B recursivo.
-     * ESTE es un método "void", no devuelve nada.
      */
     private void branchAndBound(int maxPeso, int slotIndex,
                                 int currentPeso, int currentPoise,
@@ -147,7 +143,6 @@ public class BranchAndBoundService {
 
     /**
      * Calcula el "Límite Superior Optimista" (Bound).
-     * ESTE SÍ devuelve algo: un "int"
      */
     private int calculateBound(int slotIndex, int currentPoise) {
         int bound = currentPoise;
@@ -155,6 +150,6 @@ public class BranchAndBoundService {
             String slot = slotsToFill.get(i);
             bound += maxPoisePerSlot.get(slot);
         }
-        return bound; // Y ESTE es su "return"
+        return bound;
     }
 }
