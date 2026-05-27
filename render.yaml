@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ProgrammingAlgorithms
+    env: java
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/demo-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://dpg-d8b4s75ckfvc73cmep20-a.ohio-postgres.render.com:5432/progra_db
+      - key: SPRING_DATASOURCE_USERNAME
+        value: progra_db_user
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: m2FEdypr8drF4JARQIUOKeoH1oBydiv9
+      - key: PORT
+        value: 8085
