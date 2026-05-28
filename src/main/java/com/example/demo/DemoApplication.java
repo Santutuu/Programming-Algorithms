@@ -35,14 +35,18 @@ public class DemoApplication {
     }
 
     @Bean
-    @Transactional // Esto garantiza que todo el proceso sea seguro y no falle a mitad de camino
+    @Transactional
     CommandLineRunner initDatabase(ItemRepository itemRepository,
                                    SitioDeGraciaRepository sitioDeGraciaRepository,
                                    ArmorRepository armorRepository) {
         return args -> {
             
+            // Limpieza masiva eficiente usando batch
+            itemRepository.deleteAllInBatch();
+            sitioDeGraciaRepository.deleteAllInBatch();
+            armorRepository.deleteAllInBatch();
+
             // 1. SEEDER MINECRAFT
-            itemRepository.deleteAll(); 
             itemRepository.saveAll(List.of(
                     new ItemEntity("Redstone", 64, "Recurso"),
                     new ItemEntity("Pico de Diamante", 1, "Herramienta"),
@@ -53,8 +57,6 @@ public class DemoApplication {
             log.info(">>> Inventario inicializado.");
 
             // 2. SEEDER ELDEN RING (MAPA)
-            sitioDeGraciaRepository.deleteAll();
-
             SitioDeGraciaEntity necrolimbo = new SitioDeGraciaEntity("Necrolimbo");
             SitioDeGraciaEntity liurnia = new SitioDeGraciaEntity("Liurnia");
             SitioDeGraciaEntity caelid = new SitioDeGraciaEntity("Caelid");
@@ -66,16 +68,11 @@ public class DemoApplication {
             SitioDeGraciaEntity prohibido = new SitioDeGraciaEntity("Tierras Prohibidas");
             SitioDeGraciaEntity nieve = new SitioDeGraciaEntity("Nieve (Oeste)");
 
-            sitioDeGraciaRepository.saveAll(List.of(
-                    necrolimbo, liurnia, caelid, altus, mountain,
-                    peninsula, gelmir, dragonbarrow, prohibido, nieve
-            ));
-
-            // Relaciones
+            // Definimos relaciones
             necrolimbo.addRuta(liurnia, 34);
             necrolimbo.addRuta(peninsula, 25);
-            // ... (agrega aquí el resto de tus addRuta)
             
+            // Guardamos todo el grafo de una vez
             sitioDeGraciaRepository.saveAll(List.of(
                     necrolimbo, liurnia, caelid, altus, mountain,
                     peninsula, gelmir, dragonbarrow, prohibido, nieve
@@ -83,7 +80,6 @@ public class DemoApplication {
             log.info(">>> Mapa inicializado.");
 
             // 3. SEEDER ARMADURAS
-            armorRepository.deleteAll();
             armorRepository.saveAll(List.of(
                     new ArmorEntity("Casco de Radahn", 8, 20, "HEAD"),
                     new ArmorEntity("Pecho de Radahn", 25, 50, "CHEST"),
