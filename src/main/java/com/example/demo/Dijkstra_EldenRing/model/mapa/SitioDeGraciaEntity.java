@@ -11,8 +11,9 @@ public class SitioDeGraciaEntity {
     @Id
     private String name;
 
-    // CascadeType.ALL y orphanRemoval aseguran que si borrás un sitio, se limpien sus rutas asociadas
-    @OneToMany(mappedBy = "origen", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    // MODIFICADO: Se quitó 'orphanRemoval = true' y se restringió el 'cascade'
+    // para evitar que Hibernate lance errores de integridad al borrar.
+    @OneToMany(mappedBy = "origen", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private Set<RutaEntity> rutas = new HashSet<>();
 
     // Constructor vacío obligatorio para JPA
@@ -22,7 +23,7 @@ public class SitioDeGraciaEntity {
         this.name = name;
     }
 
-    // Método para agregar caminos adaptado a JPA
+    // Método para agregar caminos
     public void addRuta(SitioDeGraciaEntity destino, int costoEnemigos) {
         RutaEntity nuevaRuta = new RutaEntity(this, destino, costoEnemigos);
         this.rutas.add(nuevaRuta);
