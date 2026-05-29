@@ -12,5 +12,6 @@ Branch & Bound: Optimizing armor selection under constraints
 
 **Technologies**
 - **Frontend:** HTML, CSS, JavaScript  
-- **Backend:** Java, Spring Boot (REST API)  
+- **Backend:** Java, Spring Boot (REST API)
+- **Database:** PostgreSQL (managed using Docker)
 - **Deployment:** https://algorithms-visualizer-n1xl.onrender.com/
