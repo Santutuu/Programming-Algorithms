@@ -42,6 +42,7 @@ public class DemoApplication {
         return args -> {
             
             // Limpieza masiva eficiente usando batch
+            rutaRepository.deleteAllInBatch();
             itemRepository.deleteAllInBatch();
             sitioDeGraciaRepository.deleteAllInBatch();
             armorRepository.deleteAllInBatch();
